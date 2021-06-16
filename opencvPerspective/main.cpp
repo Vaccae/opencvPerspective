@@ -17,6 +17,7 @@ Point2f GetCrossPoint(Vec4f Line1, Vec4f Line2);
 
 //排序旋转矩形坐标点
 void SortRotatedRectPoints(Point2f vetPoints[], RotatedRect rect);
+void SortRotatedRectPoints(Point2f vetPoints[], RotatedRect rect, int flag);
 //计算距离
 float CalcPointDistance(Point2f point1, Point2f point2);
 
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
 				RotatedRect rRect = minAreaRect(contours_poly[i]);
 				Point2f vertices[4];
 				//重新排序矩形坐标点，按左上，右上，右下，左下顺序
-				SortRotatedRectPoints(vertices, rRect);
+				SortRotatedRectPoints(vertices, rRect, 0);
 
 				cout << vertices[0] << vertices[1] << vertices[2] << vertices[3] << endl;
 
@@ -337,6 +338,72 @@ void SortRotatedRectPoints(Point2f vetPoints[], RotatedRect rect)
 	}
 
 }
+
+
+//重新排序旋转矩形坐标点
+void SortRotatedRectPoints(Point2f vetPoints[], RotatedRect rect, int flag)
+{
+	rect.points(vetPoints);
+
+	cout << vetPoints[0] << vetPoints[1] << vetPoints[2] << vetPoints[3] << endl;
+	cout << rect.angle << endl;
+
+	Point2f curpoint;
+	if (flag == 0) {
+		//按X轴排序
+		for (int i = 0; i < 4; ++i) {
+			for (int k = i + 1; k < 4; ++k) {
+				if (vetPoints[i].x > vetPoints[k].x) {
+					curpoint = vetPoints[i];
+					vetPoints[i] = vetPoints[k];
+					vetPoints[k] = curpoint;
+				}
+			}
+		}
+
+		//判断X坐标前两个定义左上左下角
+		if (vetPoints[0].y > vetPoints[1].y) {
+			curpoint = vetPoints[0];
+			vetPoints[0] = vetPoints[1];
+			vetPoints[1] = vetPoints[3];
+			vetPoints[3] = curpoint;
+		}
+		else {
+			curpoint = vetPoints[3];
+			vetPoints[3] = vetPoints[1];
+			vetPoints[1] = curpoint;
+		}
+
+		//判断X坐标后两个定义右上右下角
+		if (vetPoints[1].y > vetPoints[2].y) {
+			curpoint = vetPoints[1];
+			vetPoints[1] = vetPoints[2];
+			vetPoints[2] = curpoint;
+		}
+	}
+	else {
+		//根据Rect的坐标点，Y轴最大的为P[0]，p[0]围着center顺时针旋转, 
+		//旋转角度为负的话即是P[0]在左下角，为正P[0]是右下角
+		//重新排序坐标点
+		if (rect.angle < 0) {
+			curpoint = vetPoints[0];
+			vetPoints[0] = vetPoints[2];
+			vetPoints[2] = curpoint;
+			curpoint = vetPoints[1];
+			vetPoints[1] = vetPoints[3];
+			vetPoints[3] = curpoint;
+		}
+		else if (rect.angle > 0) {
+			curpoint = vetPoints[0];
+			vetPoints[0] = vetPoints[1];
+			vetPoints[1] = vetPoints[2];
+			vetPoints[2] = vetPoints[3];
+			vetPoints[3] = curpoint;
+		}
+	}
+
+}
+
 
 //计算两点间的距离
 float CalcPointDistance(Point2f point1, Point2f point2)
